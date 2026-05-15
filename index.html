@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>염 수용액 액성 확인 시뮬레이션</title>
+    <title>염 수용액 액성 확인 시뮬레이션 (개선판)</title>
     <style>
         /* 전체 레이아웃 */
         body {
@@ -63,6 +63,9 @@
             font-weight: bold;
             cursor: grab;
             transition: transform 0.2s, box-shadow 0.2s;
+            /* === 수정: 폰트 크기 조정 === */
+            font-size: 14px;
+            text-align: center;
         }
 
         .salt:hover {
@@ -159,6 +162,7 @@
             padding: 15px;
             min-height: 50px;
             margin-bottom: 15px;
+            font-size: 15px;
         }
 
         #reset-button {
@@ -177,7 +181,6 @@
         #reset-button:hover {
             background-color: #f4511e;
         }
-
     </style>
 </head>
 <body>
@@ -187,12 +190,13 @@
         <h3>시약 선택</h3>
         <p>염 모형을 비커로 끌어다 놓으세요.</p>
         <div id="salt-container">
+            <!-- === 수정: 화학식에 아래첨자(sub) 적용 === -->
             <div class="salt" draggable="true" data-salt="NaCl">NaCl</div>
-            <div class="salt" draggable="true" data-salt="CH3COONa">CH_{3}COONa</div>
-            <div class="salt" draggable="true" data-salt="NH4Cl">NH_{4}Cl</div>
-            <div class="salt" draggable="true" data-salt="CH3COONH4">CH_{3}COONH_{4}</div>
-            <div class="salt" draggable="true" data-salt="KNO3">KNO_{3}</div>
-            <div class="salt" draggable="true" data-salt="Na2CO3">Na_{2}CO_{3}</div>
+            <div class="salt" draggable="true" data-salt="CH3COONa">CH<sub>3</sub>COONa</div>
+            <div class="salt" draggable="true" data-salt="NH4Cl">NH<sub>4</sub>Cl</div>
+            <div class="salt" draggable="true" data-salt="CH3COONH4">CH<sub>3</sub>COONH<sub>4</sub></div>
+            <div class="salt" draggable="true" data-salt="KNO3">KNO<sub>3</sub></div>
+            <div class="salt" draggable="true" data-salt="Na2CO3">Na<sub>2</sub>CO<sub>3</sub></div>
         </div>
     </div>
 
@@ -208,7 +212,8 @@
     </div>
 
     <div id="info-panel" class="panel">
-        <h3>정보 및 제어</h3>
+        <!-- === 수정: 창 제목 변경 === -->
+        <h3>염에 대한 정보</h3>
         <div id="info-box">실험할 염을 선택하세요.</div>
         <button id="reset-button">초기화</button>
     </div>
@@ -216,17 +221,16 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- 데이터 정의 ---
+        // === 수정: 정보 내용 변경 (이온화 상수) ===
         const saltData = {
-            'NaCl': { pH: 7.0, color: '#90EE90', info: 'NaCl (염화나트륨): 강산(HCl)과 강염기(NaOH)의 염으로, 이온이 가수분해되지 않아 중성(pH 7.0)을 띱니다.' },
-            'CH3COONa': { pH: 8.5, color: '#20B2AA', info: 'CH_{3}COONa (아세트산나트륨): CH_{3}COO^{-} 이온이 가수분해되어 OH^{-}를 내놓아 염기성(pH > 7)을 띱니다. (짝산 CH_{3}COOH의 Ka ≈ 1.8 x 10^{-5})' },
-            'NH4Cl': { pH: 5.5, color: '#FFA500', info: 'NH_{4}Cl (염화암모늄): NH_{4}⁺ 이온이 가수분해되어 H_{3}O^{+}를 내놓아 산성(pH < 7)을 띱니다. (짝염기 NH_{3}의 Kb ≈ 1.8 x 10^{-5})' },
-            'CH3COONH4': { pH: 7.0, color: '#90EE90', info: 'CH_{3}COONH_{4} (아세트산암모늄): 짝산의 Ka와 짝염기의 Kb가 거의 같으므로 중성(pH 7.0)을 띱니다.' },
-            'KNO3': { pH: 7.0, color: '#90EE90', info: 'KNO_{3} (질산칼륨): 강산(HNO_{3})과 강염기(KOH)의 염으로, 이온이 가수분해되지 않아 중성(pH 7.0)을 띱니다.' },
-            'Na2CO3': { pH: 10.5, color: '#4169E1', info: 'Na_{2}CO_{3} (탄산나트륨): CO_{3}²⁻ 이온이 가수분해되어 OH^{-}를 내놓아 강한 염기성(pH > 7)을 띱니다.' }
+            'NaCl': { pH: 7.0, color: '#90EE90', info: '강산과 강염기의 염 (가수분해 없음)' },
+            'CH3COONa': { pH: 8.5, color: '#20B2AA', info: 'CH<sub>3</sub>COO<sup>-</sup>의 K<sub>b</sub> &approx; 5.6 x 10<sup>-10</sup>' },
+            'NH4Cl': { pH: 5.5, color: '#FFA500', info: 'NH<sub>4</sub><sup>+</sup>의 K<sub>a</sub> &approx; 5.6 x 10<sup>-10</sup>' },
+            'CH3COONH4': { pH: 7.0, color: '#90EE90', info: 'NH<sub>4</sub><sup>+</sup>의 K<sub>a</sub> &approx; CH<sub>3</sub>COO<sup>-</sup>의 K<sub>b</sub>' },
+            'KNO3': { pH: 7.0, color: '#90EE90', info: '강산과 강염기의 염 (가수분해 없음)' },
+            'Na2CO3': { pH: 10.5, color: '#4169E1', info: 'CO<sub>3</sub><sup>2-</sup>의 K<sub>b</sub> &approx; 2.1 x 10<sup>-4</sup>' }
         };
 
-        // --- DOM 요소 ---
         const salts = document.querySelectorAll('.salt');
         const beaker = document.getElementById('beaker');
         const water = document.getElementById('water');
@@ -235,23 +239,19 @@
         const phDisplay = document.getElementById('ph-display');
         const resetButton = document.getElementById('reset-button');
 
-        // --- 상태 변수 ---
         let currentSalt = null;
         let originalMeterPos = { top: phMeter.offsetTop, left: phMeter.offsetLeft };
 
-        // --- 함수: 실험 초기화 ---
         function resetExperiment() {
             currentSalt = null;
             water.style.backgroundColor = '#eaf6ff';
-            infoBox.textContent = '실험할 염을 선택하세요.';
+            // === 수정: innerHTML 사용을 위해 일관성 유지 ===
+            infoBox.innerHTML = '실험할 염을 선택하세요.';
             phDisplay.textContent = '--';
             phMeter.style.top = `${originalMeterPos.top}px`;
             phMeter.style.left = `${originalMeterPos.left}px`;
         }
 
-        // --- 이벤트 리스너 ---
-
-        // 1. 염 드래그 앤 드롭
         salts.forEach(salt => {
             salt.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', e.target.dataset.salt);
@@ -264,7 +264,7 @@
         });
 
         beaker.addEventListener('dragover', (e) => {
-            e.preventDefault(); // 드롭을 허용하기 위해 기본 동작 방지
+            e.preventDefault();
         });
 
         beaker.addEventListener('drop', (e) => {
@@ -273,13 +273,12 @@
             if (saltData[saltName]) {
                 currentSalt = saltData[saltName];
                 water.style.backgroundColor = currentSalt.color;
-                infoBox.textContent = currentSalt.info;
-                // pH 미터가 이미 비커 안에 있다면 바로 pH 업데이트
+                // === 수정: textContent 대신 innerHTML 사용 (sub, sup 태그 렌더링) ===
+                infoBox.innerHTML = currentSalt.info;
                 updatePhReading();
             }
         });
 
-        // 2. pH 미터 드래그
         let isDraggingMeter = false;
         let offset = { x: 0, y: 0 };
         
@@ -304,12 +303,9 @@
             }
         });
         
-        // 3. pH 값 업데이트 로직
         function isMeterInBeaker() {
             const meterRect = phMeter.getBoundingClientRect();
             const waterRect = water.getBoundingClientRect();
-
-            // pH 미터의 프로브 끝 부분이 물 안에 있는지 확인
             const probeTipX = meterRect.left + meterRect.width / 2;
             const probeTipY = meterRect.bottom;
 
@@ -327,11 +323,9 @@
             }
         }
 
-        // 4. 초기화 버튼
         resetButton.addEventListener('click', resetExperiment);
 
-        // --- 초기 실행 ---
-        resetExperiment(); // 페이지 로드 시 초기화
+        resetExperiment();
     });
 </script>
 
