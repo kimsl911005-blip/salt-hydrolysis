@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>염 수용액 액성 확인 시뮬레이션 (최종 수정판)</title>
+    <title>염 수용액 액성 확인 시뮬레이션 (최종 확인판)</title>
     <style>
         /* 전체 레이아웃 */
         body {
@@ -121,6 +121,7 @@
             flex-direction: column;
             align-items: center;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 10;
         }
         
         #ph-meter.dragging {
@@ -163,6 +164,7 @@
             min-height: 50px;
             margin-bottom: 15px;
             font-size: 15px;
+            line-height: 1.5;
         }
 
         #reset-button {
@@ -190,7 +192,6 @@
         <h3>시약 선택</h3>
         <p>염 모형을 비커로 끌어다 놓으세요.</p>
         <div id="salt-container">
-            <!-- === 수정: 모든 화학식의 숫자를 <sub> 태그로 감싸 아래첨자 처리 === -->
             <div class="salt" draggable="true" data-salt="NaCl">NaCl</div>
             <div class="salt" draggable="true" data-salt="CH3COONa">CH<sub>3</sub>COONa</div>
             <div class="salt" draggable="true" data-salt="NH4Cl">NH<sub>4</sub>Cl</div>
@@ -220,7 +221,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // === 수정: 정보 내용을 Ka, Kb 값만 명확하게 표시하도록 변경 ===
         const saltData = {
             'NaCl': { pH: 7.0, color: '#90EE90', info: '가수분해 해당 없음' },
             'CH3COONa': { pH: 8.5, color: '#20B2AA', info: 'CH<sub>3</sub>COO<sup>-</sup>의 K<sub>b</sub> &approx; 5.6 x 10<sup>-10</sup>' },
@@ -238,9 +238,10 @@ CH<sub>3</sub>COO<sup>-</sup>의 K<sub>b</sub> &approx; 5.6 x 10<sup>-10</sup>' 
         const phMeter = document.getElementById('ph-meter');
         const phDisplay = document.getElementById('ph-display');
         const resetButton = document.getElementById('reset-button');
+        const experimentPanel = document.getElementById('experiment-panel');
 
         let currentSalt = null;
-        let originalMeterPos = { top: phMeter.offsetTop, left: phMeter.offsetLeft };
+        const originalMeterPos = { top: phMeter.offsetTop, left: phMeter.offsetLeft };
 
         function resetExperiment() {
             currentSalt = null;
@@ -254,18 +255,12 @@ CH<sub>3</sub>COO<sup>-</sup>의 K<sub>b</sub> &approx; 5.6 x 10<sup>-10</sup>' 
         salts.forEach(salt => {
             salt.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', e.target.dataset.salt);
-                e.target.classList.add('dragging');
+                setTimeout(() => e.target.classList.add('dragging'), 0);
             });
-
-            salt.addEventListener('dragend', (e) => {
-                e.target.classList.remove('dragging');
-            });
+            salt.addEventListener('dragend', (e) => e.target.classList.remove('dragging'));
         });
 
-        beaker.addEventListener('dragover', (e) => {
-            e.preventDefault();
-        });
-
+        beaker.addEventListener('dragover', (e) => e.preventDefault());
         beaker.addEventListener('drop', (e) => {
             e.preventDefault();
             const saltName = e.dataTransfer.getData('text/plain');
@@ -283,14 +278,19 @@ CH<sub>3</sub>COO<sup>-</sup>의 K<sub>b</sub> &approx; 5.6 x 10<sup>-10</sup>' 
         phMeter.addEventListener('mousedown', (e) => {
             isDraggingMeter = true;
             phMeter.classList.add('dragging');
-            offset.x = e.clientX - phMeter.offsetLeft;
-            offset.y = e.clientY - phMeter.offsetTop;
+            const panelRect = experimentPanel.getBoundingClientRect();
+            offset.x = e.clientX - phMeter.getBoundingClientRect().left;
+            offset.y = e.clientY - phMeter.getBoundingClientRect().top;
         });
 
         document.addEventListener('mousemove', (e) => {
             if (!isDraggingMeter) return;
-            phMeter.style.left = `${e.clientX - offset.x}px`;
-            phMeter.style.top = `${e.clientY - offset.y}px`;
+            e.preventDefault();
+            const panelRect = experimentPanel.getBoundingClientRect();
+            let newLeft = e.clientX - offset.x - panelRect.left;
+            let newTop = e.clientY - offset.y - panelRect.top;
+            phMeter.style.left = `${newLeft}px`;
+            phMeter.style.top = `${newTop}px`;
             updatePhReading();
         });
 
@@ -306,11 +306,8 @@ CH<sub>3</sub>COO<sup>-</sup>의 K<sub>b</sub> &approx; 5.6 x 10<sup>-10</sup>' 
             const waterRect = water.getBoundingClientRect();
             const probeTipX = meterRect.left + meterRect.width / 2;
             const probeTipY = meterRect.bottom;
-
-            return probeTipX > waterRect.left &&
-                   probeTipX < waterRect.right &&
-                   probeTipY > waterRect.top &&
-                   probeTipY < waterRect.bottom;
+            return probeTipX > waterRect.left && probeTipX < waterRect.right &&
+                   probeTipY > waterRect.top && probeTipY < waterRect.bottom;
         }
 
         function updatePhReading() {
@@ -322,7 +319,6 @@ CH<sub>3</sub>COO<sup>-</sup>의 K<sub>b</sub> &approx; 5.6 x 10<sup>-10</sup>' 
         }
 
         resetButton.addEventListener('click', resetExperiment);
-
         resetExperiment();
     });
 </script>
