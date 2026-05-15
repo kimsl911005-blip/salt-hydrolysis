@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>염 수용액 액성 확인 시뮬레이션 (개선판)</title>
+    <title>염 수용액 액성 확인 시뮬레이션 (최종 수정판)</title>
     <style>
         /* 전체 레이아웃 */
         body {
@@ -63,9 +63,9 @@
             font-weight: bold;
             cursor: grab;
             transition: transform 0.2s, box-shadow 0.2s;
-            /* === 수정: 폰트 크기 조정 === */
             font-size: 14px;
             text-align: center;
+            line-height: 1.2;
         }
 
         .salt:hover {
@@ -101,7 +101,7 @@
             position: absolute;
             bottom: 0;
             width: 100%;
-            height: 66.6%; /* 2/3 */
+            height: 66.6%;
             background-color: #eaf6ff;
             border-radius: 0 0 15px 15px;
             transition: background-color 1s ease;
@@ -190,7 +190,7 @@
         <h3>시약 선택</h3>
         <p>염 모형을 비커로 끌어다 놓으세요.</p>
         <div id="salt-container">
-            <!-- === 수정: 화학식에 아래첨자(sub) 적용 === -->
+            <!-- === 수정: 모든 화학식의 숫자를 <sub> 태그로 감싸 아래첨자 처리 === -->
             <div class="salt" draggable="true" data-salt="NaCl">NaCl</div>
             <div class="salt" draggable="true" data-salt="CH3COONa">CH<sub>3</sub>COONa</div>
             <div class="salt" draggable="true" data-salt="NH4Cl">NH<sub>4</sub>Cl</div>
@@ -212,7 +212,6 @@
     </div>
 
     <div id="info-panel" class="panel">
-        <!-- === 수정: 창 제목 변경 === -->
         <h3>염에 대한 정보</h3>
         <div id="info-box">실험할 염을 선택하세요.</div>
         <button id="reset-button">초기화</button>
@@ -221,13 +220,14 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // === 수정: 정보 내용 변경 (이온화 상수) ===
+        // === 수정: 정보 내용을 Ka, Kb 값만 명확하게 표시하도록 변경 ===
         const saltData = {
-            'NaCl': { pH: 7.0, color: '#90EE90', info: '강산과 강염기의 염 (가수분해 없음)' },
+            'NaCl': { pH: 7.0, color: '#90EE90', info: '가수분해 해당 없음' },
             'CH3COONa': { pH: 8.5, color: '#20B2AA', info: 'CH<sub>3</sub>COO<sup>-</sup>의 K<sub>b</sub> &approx; 5.6 x 10<sup>-10</sup>' },
             'NH4Cl': { pH: 5.5, color: '#FFA500', info: 'NH<sub>4</sub><sup>+</sup>의 K<sub>a</sub> &approx; 5.6 x 10<sup>-10</sup>' },
-            'CH3COONH4': { pH: 7.0, color: '#90EE90', info: 'NH<sub>4</sub><sup>+</sup>의 K<sub>a</sub> &approx; CH<sub>3</sub>COO<sup>-</sup>의 K<sub>b</sub>' },
-            'KNO3': { pH: 7.0, color: '#90EE90', info: '강산과 강염기의 염 (가수분해 없음)' },
+            'CH3COONH4': { pH: 7.0, color: '#90EE90', info: 'NH<sub>4</sub><sup>+</sup>의 K<sub>a</sub> &approx; 5.6 x 10<sup>-10</sup>
+CH<sub>3</sub>COO<sup>-</sup>의 K<sub>b</sub> &approx; 5.6 x 10<sup>-10</sup>' },
+            'KNO3': { pH: 7.0, color: '#90EE90', info: '가수분해 해당 없음' },
             'Na2CO3': { pH: 10.5, color: '#4169E1', info: 'CO<sub>3</sub><sup>2-</sup>의 K<sub>b</sub> &approx; 2.1 x 10<sup>-4</sup>' }
         };
 
@@ -245,7 +245,6 @@
         function resetExperiment() {
             currentSalt = null;
             water.style.backgroundColor = '#eaf6ff';
-            // === 수정: innerHTML 사용을 위해 일관성 유지 ===
             infoBox.innerHTML = '실험할 염을 선택하세요.';
             phDisplay.textContent = '--';
             phMeter.style.top = `${originalMeterPos.top}px`;
@@ -273,7 +272,6 @@
             if (saltData[saltName]) {
                 currentSalt = saltData[saltName];
                 water.style.backgroundColor = currentSalt.color;
-                // === 수정: textContent 대신 innerHTML 사용 (sub, sup 태그 렌더링) ===
                 infoBox.innerHTML = currentSalt.info;
                 updatePhReading();
             }
